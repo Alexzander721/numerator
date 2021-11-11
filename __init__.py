@@ -8,7 +8,7 @@
                              -------------------
         begin                : 2021-07-01
         copyright            : (C) 2021 by Travin Alexzander
-        email                : travin1995@inbox.ru
+        email                : Alexzander721@mail.ru
         git sha              : $Format:%H$
  ***************************************************************************/
 
