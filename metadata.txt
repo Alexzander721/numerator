@@ -1,25 +1,27 @@
 [general]
 name=automatic numbering plugin
 qgisMinimumVersion=3.0
-description=automatic numbering of polygons
+description=Automatic numbering of polygons
 version=0.1
 author=Travin Alexzander
-email=travin1995@inbox.ru
+email=Alexzander721@mail.ru
 
-about=automatic numbering of polygons
+about=This plugin allows polygons to be numbered using the max Y values and the total uniting field (optional). The numbering is made from the top object to the bottom. First, you need to open a vector polygonal layer and select it in the plugin's list of layers. Then we select the necessary settings and start the process.
 
+tracker=https://github.com/Alexzander721/numerator/issues
+repository=https://github.com/Alexzander721/numerator
 # End of mandatory metadata
 
 # Recommended items:
 
 hasProcessingProvider=no
 # Uncomment the following line and add your changelog:
-# changelog=
+# changelog=2021/11/11 v  0.1 - realise
 
 # Tags are comma separated with spaces allowed
 tags=attribute, polygon, database, auto
 
-homepage=http://homepage
+homepage=https://github.com/Alexzander721/numerator
 category=Vector
 icon=icon.png
 # experimental flag
