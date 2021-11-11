@@ -16,7 +16,7 @@ repository=https://github.com/Alexzander721/numerator
 
 hasProcessingProvider=no
 # Uncomment the following line and add your changelog:
-# changelog=2021/11/11 v  0.1 - realise
+changelog=2021/11/11 v  0.1 - realise
 
 # Tags are comma separated with spaces allowed
 tags=attribute, polygon, database, auto
