@@ -1,6 +1,6 @@
 [general]
 name=automatic numbering plugin
-qgisMinimumVersion=3.0
+qgisMinimumVersion=3.10
 description=Automatic numbering of polygons
 version=0.1
 author=Travin Alexzander
