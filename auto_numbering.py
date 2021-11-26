@@ -261,6 +261,7 @@ class autoliterator:
             self.dockwidget.comboBox_2.setDisabled(False)
         if self.dockwidget.only.isChecked() == True:
             self.dockwidget.all.setDisabled(True)
+            self.dockwidget.comboBox_2.setDisabled(True)
         if self.dockwidget.only.isChecked() == False:
             self.dockwidget.all.setDisabled(False)
         if self.dockwidget.recording.isChecked() == True:
