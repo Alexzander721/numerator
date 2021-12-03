@@ -74,7 +74,6 @@ class autoliterator:
         self.toolbar.setObjectName(u'autoliterator')
 
         self.pluginIsActive = False
-        self.dockwidget = None
         self.timer = QBasicTimer()
         self.step = 0
 
