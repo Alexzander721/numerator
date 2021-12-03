@@ -162,7 +162,7 @@ class autoliterator:
 
     # close plugin
     def cl(self):
-        self.dockwidget.close()
+        self.iface.removeDockWidget(self.dockwidget)
         self.pluginIsActive = False
 
     # add layers in comboBox
