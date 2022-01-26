@@ -2,7 +2,7 @@
 name=automatic numbering plugin
 qgisMinimumVersion=3.10
 description=Automatic numbering of polygons
-version=0.2
+version=0.3
 author=Travin Alexzander
 email=Alexzander721@mail.ru
 
@@ -16,7 +16,8 @@ repository=https://github.com/Alexzander721/numerator
 
 hasProcessingProvider=no
 # Uncomment the following line and add your changelog:
-changelog=2021/12/03 v  0.2 - Errors fix
+changelog=2022/01/26 v  0.3 - QGIS crash error fix
+          2021/12/03 v  0.2 - Errors fix
           2021/11/11 v  0.1 - Release
 
 # Tags are comma separated with spaces allowed
