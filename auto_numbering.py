@@ -52,6 +52,7 @@ class autoliterator:
 
     def __init__(self, iface):
         self.iface = iface
+        self.dockwidget = autoliteratorDockWidget()
         self.instance = QgsProject.instance()
         self.plugin_dir = os.path.dirname(__file__)
 
@@ -72,6 +73,7 @@ class autoliterator:
         self.menu = self.tr(u'&automatic numbering plugin')
         self.toolbar = self.iface.addToolBar(u'autoliterator')
         self.toolbar.setObjectName(u'autoliterator')
+        self.first_start = None
 
         self.pluginIsActive = False
         self.timer = QBasicTimer()
@@ -136,15 +138,14 @@ class autoliterator:
         del self.toolbar
 
     def run(self):
-        self.dockwidget = None
+        self.first_start = True
         if not self.pluginIsActive:
             self.pluginIsActive = True
-            if self.dockwidget == None:
-                self.dockwidget = autoliteratorDockWidget()
         self.dockwidget.closingPlugin.connect(self.onClosePlugin)
         self.iface.addDockWidget(Qt.RightDockWidgetArea, self.dockwidget)
         self.dockwidget.recording.setChecked(False)
         self.dockwidget.create.setChecked(True)
+        self.dockwidget.lineEdit.setDisabled(False)
         self.dockwidget.lineEdit.setText("№")
         self.dockwidget.comboBox_3.setDisabled(True)
         self.dockwidget.progressBar.setValue(0)
@@ -182,52 +183,56 @@ class autoliterator:
             [self.dockwidget.comboBox_3.addItem(field.name()) for field in slayer.fields()]
 
     def start(self):
-        self.progressbar()
-        self.startProgress()
-        slayer = self.dockwidget.comboBox.itemData(self.dockwidget.comboBox.currentIndex())
-        selectedfield = self.dockwidget.comboBox_2.currentText()
-        findx = slayer.dataProvider().fieldNameIndex(f"{selectedfield}")
-        lst = []
-        self.create_field(slayer)
-        # numbering all objects in layer
-        # unifying field is not used
-        if self.dockwidget.all.isChecked() == True:
-            slayer.selectAll()
-            for feature in slayer.getFeatures():
-                self.change(slayer, feature)
-            self.numbering(slayer)
-        # numbering selected objects in layer
-        # unifying field is used
-        elif self.dockwidget.only.isChecked() == True:
-            for feature in slayer.getFeatures():
-                self.change(slayer, feature)
-            self.numbering(slayer)
-        # standard numbering
-        # unifying field is used
-        elif self.dockwidget.all.isChecked() == False or self.dockwidget.only.isChecked() == False:
-            for feature in slayer.getFeatures():
-                lst.append(feature.attributes()[findx])
-                self.change(slayer, feature)
-            # enumeration of all objects by their unifying feature
-            for number in list(set(lst)):
-                slfeats = f"{selectedfield}={number}"
-                slayer.selectByExpression(f'{slfeats}')
+        if self.first_start:
+            self.progressbar()
+            self.startProgress()
+            slayer = self.dockwidget.comboBox.itemData(self.dockwidget.comboBox.currentIndex())
+            selectedfield = self.dockwidget.comboBox_2.currentText()
+            findx = slayer.dataProvider().fieldNameIndex(f"{selectedfield}")
+            lst = []
+            self.create_field(slayer)
+            # numbering all objects in layer
+            # unifying field is not used
+            if self.dockwidget.all.isChecked():
+                slayer.selectAll()
+                for feature in slayer.getFeatures():
+                    self.change(slayer, feature)
                 self.numbering(slayer)
-        slayer.removeSelection()
-        slayer.dataProvider().deleteAttributes([slayer.dataProvider().fieldNameIndex("sm_max")])
-        slayer.updateFields()
-        self.style(slayer)
+            # numbering selected objects in layer
+            # unifying field is used
+            elif self.dockwidget.only.isChecked():
+                for feature in slayer.getFeatures():
+                    self.change(slayer, feature)
+                self.numbering(slayer)
+            # standard numbering
+            # unifying field is used
+            elif self.dockwidget.all.isChecked() == False or self.dockwidget.only.isChecked() == False:
+                for feature in slayer.getFeatures():
+                    lst.append(feature.attributes()[findx])
+                    self.change(slayer, feature)
+                # enumeration of all objects by their unifying feature
+                for number in list(set(lst)):
+                    slfeats = f"{selectedfield}={number}"
+                    slayer.selectByExpression(f'{slfeats}')
+                    self.numbering(slayer)
+            slayer.removeSelection()
+            slayer.dataProvider().deleteAttributes([slayer.dataProvider().fieldNameIndex("sm_max")])
+            slayer.updateFields()
+            self.style(slayer)
+            self.first_start = False
+        else:
+            pass
 
     def create_field(self, slayer):
-        if self.dockwidget.create.isChecked() == True:
+        if self.dockwidget.create.isChecked():
             slayer.dataProvider().addAttributes([QgsField(self.dockwidget.lineEdit.text(), QVariant.Int)])
         slayer.dataProvider().addAttributes([QgsField("sm_max", QVariant.Double)])
 
     def ndx(self, slayer):
-        if self.dockwidget.create.isChecked() == True:
+        if self.dockwidget.create.isChecked():
             ndx = slayer.dataProvider().fieldNameIndex(str(self.dockwidget.lineEdit.text()))
             return ndx
-        elif self.dockwidget.recording.isChecked() == True:
+        elif self.dockwidget.recording.isChecked():
             ndx = slayer.dataProvider().fieldNameIndex(str(self.dockwidget.comboBox_3.currentText()))
             return ndx
 
@@ -252,32 +257,34 @@ class autoliterator:
         slayer.commitChanges()
 
     def clik(self):
-        if self.dockwidget.all.isChecked() == True:
+        self.first_start = True
+        if self.dockwidget.all.isChecked():
             self.dockwidget.only.setDisabled(True)
             self.dockwidget.comboBox_2.setDisabled(True)
-        if self.dockwidget.all.isChecked() == False:
+        if not self.dockwidget.all.isChecked():
             self.dockwidget.only.setDisabled(False)
             self.dockwidget.comboBox_2.setDisabled(False)
-        if self.dockwidget.only.isChecked() == True:
+        if self.dockwidget.only.isChecked():
             self.dockwidget.all.setDisabled(True)
             self.dockwidget.comboBox_2.setDisabled(True)
-        if self.dockwidget.only.isChecked() == False:
+        if not self.dockwidget.only.isChecked():
             self.dockwidget.all.setDisabled(False)
-        if self.dockwidget.recording.isChecked() == True:
+        if self.dockwidget.recording.isChecked():
             self.dockwidget.create.setChecked(False)
             self.dockwidget.lineEdit.setDisabled(True)
             self.dockwidget.comboBox_3.setDisabled(False)
-        if self.dockwidget.recording.isChecked() == False:
+        if not self.dockwidget.recording.isChecked():
             self.dockwidget.create.setChecked(True)
             self.dockwidget.lineEdit.setDisabled(False)
             self.dockwidget.comboBox_3.setDisabled(True)
 
     def clik_create(self):
-        if self.dockwidget.create.isChecked() == True:
+        self.first_start = True
+        if self.dockwidget.create.isChecked():
             self.dockwidget.recording.setChecked(False)
             self.dockwidget.lineEdit.setDisabled(False)
             self.dockwidget.comboBox_3.setDisabled(True)
-        if self.dockwidget.create.isChecked() == False:
+        if not self.dockwidget.create.isChecked():
             self.dockwidget.recording.setChecked(True)
             self.dockwidget.lineEdit.setDisabled(True)
             self.dockwidget.comboBox_3.setDisabled(False)
@@ -285,9 +292,9 @@ class autoliterator:
     # enabling leLabels upon completion of the algorithm
     def style(self, slayer):
         labelSettings = QgsPalLayerSettings()
-        if self.dockwidget.create.isChecked() == True:
+        if self.dockwidget.create.isChecked():
             labelSettings.fieldName = f"{self.dockwidget.lineEdit.text()}"
-        elif self.dockwidget.recording.isChecked() == True:
+        elif self.dockwidget.recording.isChecked():
             labelSettings.fieldName = f"{self.dockwidget.comboBox_3.currentText()}"
         slayer.setLabeling(QgsVectorLayerSimpleLabeling(labelSettings))
         slayer.setLabelsEnabled(True)
