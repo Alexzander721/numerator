@@ -52,7 +52,6 @@ class autoliterator:
 
     def __init__(self, iface):
         self.iface = iface
-        self.dockwidget = autoliteratorDockWidget()
         self.instance = QgsProject.instance()
         self.plugin_dir = os.path.dirname(__file__)
 
@@ -74,6 +73,7 @@ class autoliterator:
         self.toolbar = self.iface.addToolBar(u'autoliterator')
         self.toolbar.setObjectName(u'autoliterator')
         self.first_start = None
+        self.dockwidget = autoliteratorDockWidget()
 
         self.pluginIsActive = False
         self.timer = QBasicTimer()
@@ -138,7 +138,6 @@ class autoliterator:
         del self.toolbar
 
     def run(self):
-        self.first_start = True
         if not self.pluginIsActive:
             self.pluginIsActive = True
         self.dockwidget.closingPlugin.connect(self.onClosePlugin)
@@ -153,6 +152,8 @@ class autoliterator:
             self.choice_layer()
             self.choice_field()
         self.dockwidget.comboBox.currentIndexChanged.connect(self.choice_field)
+        self.dockwidget.comboBox_2.currentIndexChanged.connect(self.first)
+        self.dockwidget.comboBox_3.currentIndexChanged.connect(self.first)
         self.dockwidget.all.clicked.connect(self.clik)
         self.dockwidget.only.clicked.connect(self.clik)
         self.dockwidget.recording.clicked.connect(self.clik)
@@ -160,6 +161,10 @@ class autoliterator:
         self.dockwidget.Run.clicked.connect(self.start)
         self.dockwidget.Cancel.clicked.connect(self.cl)
         self.dockwidget.show()
+
+    # startup history clear
+    def first(self):
+        self.first_start = True
 
     # close plugin
     def cl(self):
@@ -177,6 +182,7 @@ class autoliterator:
     def choice_field(self):
         self.dockwidget.comboBox_2.clear()
         self.dockwidget.comboBox_3.clear()
+        self.first_start = True
         slayer = self.dockwidget.comboBox.itemData(self.dockwidget.comboBox.currentIndex())
         if slayer is not None:
             [self.dockwidget.comboBox_2.addItem(field.name()) for field in slayer.fields()]
