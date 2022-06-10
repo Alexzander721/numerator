@@ -46,6 +46,7 @@ from qgis.core import (QgsApplication,
 from .resources import *
 from .auto_numbering_dockwidget import autoliteratorDockWidget
 import os.path
+import numpy as np
 
 
 class autoliterator:
@@ -174,9 +175,9 @@ class autoliterator:
     # add layers in comboBox
     def choice_layer(self):
         self.dockwidget.comboBox.clear()
-        for layer in self.instance.mapLayers().values():
-            if layer.type() == QgsMapLayer.VectorLayer:
-                self.dockwidget.comboBox.addItem(layer.name(), layer)
+        [self.dockwidget.comboBox.addItem(layer.name(), layer) for layer in self.instance.mapLayers().values() if
+         layer.type() == QgsMapLayer.VectorLayer and layer.wkbType() == 3 or \
+         layer.type() == QgsMapLayer.VectorLayer and layer.wkbType() == 6]
 
     # add fields in comboBox
     def choice_field(self):
@@ -201,14 +202,12 @@ class autoliterator:
             # unifying field is not used
             if self.dockwidget.all.isChecked():
                 slayer.selectAll()
-                for feature in slayer.getFeatures():
-                    self.change(slayer, feature)
+                [self.change(slayer, feature) for feature in slayer.getFeatures()]
                 self.numbering(slayer)
             # numbering selected objects in layer
             # unifying field is used
             elif self.dockwidget.only.isChecked():
-                for feature in slayer.getFeatures():
-                    self.change(slayer, feature)
+                [self.change(slayer, feature) for feature in slayer.getFeatures()]
                 self.numbering(slayer)
             # standard numbering
             # unifying field is used
@@ -216,7 +215,7 @@ class autoliterator:
                 for feature in slayer.getFeatures():
                     lst.append(feature.attributes()[findx])
                     self.change(slayer, feature)
-                # enumeration of all objects by their unifying feature
+                #     # enumeration of all objects by their unifying feature
                 for number in list(set(lst)):
                     slfeats = f"{selectedfield}={number}"
                     slayer.selectByExpression(f'{slfeats}')
@@ -246,10 +245,13 @@ class autoliterator:
     def change(self, slayer, feature):
         indx = slayer.dataProvider().fieldNameIndex("sm_max")
         geom = feature.geometry()
-        ymax = geom.boundingBox().toString().split(',')[2]
-        sm = float(ymax)
-        slayer.dataProvider().changeAttributeValues(
-            {feature.id(): {indx: sm}})
+        try:
+            ymax = geom.boundingBox().toString().split(',')[2]
+            sm = float(ymax)
+            slayer.dataProvider().changeAttributeValues(
+                {feature.id(): {indx: sm}})
+        except IndexError:
+            pass
 
     # sorting max Y values from highest to lowest and numbering
     def numbering(self, slayer):
@@ -323,3 +325,4 @@ class autoliterator:
 
         self.step += 1
         self.dockwidget.progressBar.setValue(self.step)
+
