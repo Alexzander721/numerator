@@ -46,7 +46,6 @@ from qgis.core import (QgsApplication,
 from .resources import *
 from .auto_numbering_dockwidget import autoliteratorDockWidget
 import os.path
-import numpy as np
 
 
 class autoliterator:
@@ -215,7 +214,7 @@ class autoliterator:
                 for feature in slayer.getFeatures():
                     lst.append(feature.attributes()[findx])
                     self.change(slayer, feature)
-                #     # enumeration of all objects by their unifying feature
+            # enumeration of all objects by their unifying feature
                 for number in list(set(lst)):
                     slfeats = f"{selectedfield}={number}"
                     slayer.selectByExpression(f'{slfeats}')
@@ -325,4 +324,3 @@ class autoliterator:
 
         self.step += 1
         self.dockwidget.progressBar.setValue(self.step)
-
