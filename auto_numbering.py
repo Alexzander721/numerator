@@ -175,26 +175,24 @@ class autoliterator:
     def choice_layer(self):
         self.dockwidget.comboBox.clear()
         [self.dockwidget.comboBox.addItem(layer.name(), layer) for layer in self.instance.mapLayers().values() if
-         layer.type() == QgsMapLayer.VectorLayer and layer.wkbType() == 3 or \
-         layer.type() == QgsMapLayer.VectorLayer and layer.wkbType() == 6]
+         layer.type() == 0 and layer.geometryType() == 2]
 
     # add fields in comboBox
     def choice_field(self):
-        self.dockwidget.comboBox_2.clear()
-        self.dockwidget.comboBox_3.clear()
+        self.dockwidget.comboBox_2.clear(), self.dockwidget.comboBox_3.clear()
         self.first_start = True
-        slayer = self.dockwidget.comboBox.itemData(self.dockwidget.comboBox.currentIndex())
-        if slayer is not None:
-            [self.dockwidget.comboBox_2.addItem(field.name()) for field in slayer.fields()]
-            [self.dockwidget.comboBox_3.addItem(field.name()) for field in slayer.fields()]
+        if self.dockwidget.comboBox.itemData(self.dockwidget.comboBox.currentIndex()) is not None:
+            [self.dockwidget.comboBox_2.addItem(field.name()) for field in
+             self.dockwidget.comboBox.itemData(self.dockwidget.comboBox.currentIndex()).fields()]
+            [self.dockwidget.comboBox_3.addItem(field.name()) for field in
+             self.dockwidget.comboBox.itemData(self.dockwidget.comboBox.currentIndex()).fields()]
 
     def start(self):
         if self.first_start:
             self.progressbar()
             self.startProgress()
             slayer = self.dockwidget.comboBox.itemData(self.dockwidget.comboBox.currentIndex())
-            selectedfield = self.dockwidget.comboBox_2.currentText()
-            findx = slayer.dataProvider().fieldNameIndex(f"{selectedfield}")
+            findx = slayer.dataProvider().fieldNameIndex(f"{self.dockwidget.comboBox_2.currentText()}")
             lst = []
             self.create_field(slayer)
             # numbering all objects in layer
@@ -214,9 +212,9 @@ class autoliterator:
                 for feature in slayer.getFeatures():
                     lst.append(feature.attributes()[findx])
                     self.change(slayer, feature)
-            # enumeration of all objects by their unifying feature
+                # enumeration of all objects by their unifying feature
                 for number in list(set(lst)):
-                    slfeats = f"{selectedfield}={number}"
+                    slfeats = f"{self.dockwidget.comboBox_2.currentText()}={number}"
                     slayer.selectByExpression(f'{slfeats}')
                     self.numbering(slayer)
             slayer.removeSelection()
@@ -234,33 +232,27 @@ class autoliterator:
 
     def ndx(self, slayer):
         if self.dockwidget.create.isChecked():
-            ndx = slayer.dataProvider().fieldNameIndex(str(self.dockwidget.lineEdit.text()))
-            return ndx
+            return slayer.dataProvider().fieldNameIndex(str(self.dockwidget.lineEdit.text()))
         elif self.dockwidget.recording.isChecked():
-            ndx = slayer.dataProvider().fieldNameIndex(str(self.dockwidget.comboBox_3.currentText()))
-            return ndx
+            return slayer.dataProvider().fieldNameIndex(str(self.dockwidget.comboBox_3.currentText()))
 
     # adding to the field the max Y value of each objects
     def change(self, slayer, feature):
-        indx = slayer.dataProvider().fieldNameIndex("sm_max")
-        geom = feature.geometry()
         try:
-            ymax = geom.boundingBox().toString().split(',')[2]
-            sm = float(ymax)
             slayer.dataProvider().changeAttributeValues(
-                {feature.id(): {indx: sm}})
+                {feature.id(): {slayer.dataProvider().fieldNameIndex("sm_max"): float(
+                    feature.geometry().boundingBox().toString().split(',')[2])}})
         except IndexError:
             pass
 
     # sorting max Y values from highest to lowest and numbering
     def numbering(self, slayer):
-        selected = slayer.selectedFeatures()
-        indx = slayer.dataProvider().fieldNameIndex("sm_max")
         slayer.startEditing()
         self.timerEvent()
-        srtfeat = sorted(selected, key=lambda feat: feat[indx], reverse=True)
         [slayer.changeAttributeValue(val.id(), self.ndx(slayer), int(i)) for i, val in
-         enumerate(srtfeat, start=1)]
+         enumerate(
+             sorted(slayer.selectedFeatures(), key=lambda feat: feat[slayer.dataProvider().fieldNameIndex("sm_max")],
+                    reverse=True), start=1)]
         slayer.commitChanges()
 
     def clik(self):
@@ -321,6 +313,5 @@ class autoliterator:
         if self.step >= 90:
             self.timer.stop()
             return
-
         self.step += 1
         self.dockwidget.progressBar.setValue(self.step)
