@@ -1,5 +1,5 @@
 [general]
-name=automatic numbering plugin
+name=Automatic numbering plugin
 qgisMinimumVersion=3.10
 description=Automatic numbering of polygons
 version=0.5
