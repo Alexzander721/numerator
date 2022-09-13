@@ -175,7 +175,7 @@ class autoliterator:
     def choice_layer(self):
         self.dockwidget.comboBox.clear()
         [self.dockwidget.comboBox.addItem(layer.name(), layer) for layer in self.instance.mapLayers().values() if
-         layer.type() == 0 and layer.geometryType() == 2]
+         layer.type() == 0 and layer.geometryType() == 2 and layer.storageType() != "MapInfo File"]
 
     # add fields in comboBox
     def choice_field(self):
@@ -313,5 +313,6 @@ class autoliterator:
         if self.step >= 90:
             self.timer.stop()
             return
+        
         self.step += 1
         self.dockwidget.progressBar.setValue(self.step)
